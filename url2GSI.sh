@@ -189,5 +189,4 @@ echo "URL = ${URL}"
 echo "SRCTYPE = ${SRCTYPE}"
 echo "SRCTYPENAME = ${SRCTYPENAME}"
 echo "OTHER = ${@}"
-echo "ZIP_NAME = ${ZIP_NAME}"
 fi
