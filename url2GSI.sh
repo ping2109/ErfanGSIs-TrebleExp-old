@@ -7,7 +7,7 @@ PROJECT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 AB=true
 AONLY=true
 MOUNTED=false
-CLEAN=false
+CLEAN=true
 DYNAMIC=false
 LOCK="$PROJECT_DIR/cache/.lock"
 
@@ -189,4 +189,7 @@ echo "URL = ${URL}"
 echo "SRCTYPE = ${SRCTYPE}"
 echo "SRCTYPENAME = ${SRCTYPENAME}"
 echo "OTHER = ${@}"
+echo "ZIP_NAME = ${ZIP_NAME}"
 fi
+
+LEAVE
