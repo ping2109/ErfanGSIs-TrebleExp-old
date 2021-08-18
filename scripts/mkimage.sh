@@ -24,6 +24,7 @@ systemdir=$1
 outputtype=$2
 syssize=$3
 output=$4
+build=$5
 
 LOCALDIR=`cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd`
 tempdir="$LOCALDIR/../tmp"
@@ -48,7 +49,7 @@ if [[ -f "$tempdir/file_contexts" ]]; then
     echo "/bt_firmware(/.*)?      u:object_r:bt_firmware_file:s0" >> "$tempdir/file_contexts"
     echo "/persist(/.*)?          u:object_r:mnt_vendor_file:s0" >> "$tempdir/file_contexts"
     echo "/cache_wt               u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
-    echo "/sec_storage            u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
+    echo "/sec_storage(/.*)?      u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
     echo "/dsp                    u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
     echo "/oem                    u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
     echo "/op1                    u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
@@ -79,48 +80,43 @@ if [[ -f "$tempdir/file_contexts" ]]; then
     echo "/tombstones             u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
     echo "/factory                u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
     echo "/addon.d                u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
-    echo "/oneplus                u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
-    echo "/prism                  u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
-    echo "/optics                 u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
-    echo "/spu                    u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
-    echo "/oneplus(/.*)?          u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
-    echo "/op_odm                 u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
     echo "/avb                    u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
     echo "/fsg                    u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
-    echo "/dpolicy                u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
-    echo "/vgc                    u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
     echo "/logcat                 u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
     echo "/preload                u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
+    echo "/elabel                 u:object_r:rootfs:s0" >> "$tempdir/file_contexts"
+    if [ ! "$build" == false ]; then
+        if [ -f "$build/file_contexts" ]; then
+            cat "$build/file_contexts" >> "$tempdir/file_contexts"
+        fi
+    fi
     fcontexts="$tempdir/file_contexts"
 fi
+
+if [ ! "$build" == false ]; then
+    if [ -f "$build/mkdir.sh" ]; then
+        $build/mkdir.sh $systemdir
+    fi
+fi
+
 sudo rm -rf "$systemdir/persist"
 sudo rm -rf "$systemdir/bt_firmware"
 sudo rm -rf "$systemdir/firmware"
 sudo rm -rf "$systemdir/dsp"
 sudo rm -rf "$systemdir/cache"
-if [ ! -d "$systemdir/dpolicy" ]; then
-   sudo mkdir -p "$systemdir/dpolicy" > /dev/null 2>&1
+if [ -d "$systemdir/sec_storage" ]; then
+   sudo rm -rf "$systemdir/sec_storage" > /dev/null 2>&1
+   sudo mkdir -p "$systemdir/sec_storage" > /dev/null 2>&1
+else
+   sudo mkdir -p "$systemdir/sec_storage" > /dev/null 2>&1
 fi
-if [ ! -d "$systemdir/prism" ]; then
-   sudo mkdir -p "$systemdir/prism" > /dev/null 2>&1
-fi
-if [ ! -d "$systemdir/optics" ]; then
-   sudo mkdir -p "$systemdir/optics" > /dev/null 2>&1
-fi
-if [ ! -d "$systemdir/spu" ]; then
-   sudo mkdir -p "$systemdir/spu" > /dev/null 2>&1
-fi
-if [ ! -d "$systemdir/vgc" ]; then
-   sudo mkdir -p "$systemdir/vgc" > /dev/null 2>&1
-fi
-sudo mkdir -p "$systemdir/sec_storage"
 sudo mkdir -p "$systemdir/bt_firmware"
 sudo mkdir -p "$systemdir/persist"
 sudo mkdir -p "$systemdir/firmware"
 sudo mkdir -p "$systemdir/dsp"
 sudo mkdir -p "$systemdir/cache"
 
-if [ "$5" == "--old" ]; then
+if [ "$6" == "--old" ]; then
     if [ "$outputtype" == "Aonly" ]; then
         sudo $make_ext4fs -T 0 -S $fcontexts -l $syssize -L system -a system -s "$output" "$systemdir/system"
     else
